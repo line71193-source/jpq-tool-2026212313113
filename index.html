@@ -76,7 +76,6 @@
     const db = getDatabase(app);
     let currentRoom = "", userName = "", selectedColor = "", serverData = {};
     
-    // 彩蛋邏輯變數
     let clickCount = 0;
     let lastAlertTime = 0;
 
@@ -87,11 +86,10 @@
         currentRoom = document.getElementById("roomInput").value.trim();
         if(!userName || !currentRoom) return alert("請填寫暱稱與房號");
         
-        // 房主鎖定邏輯
         const ownerRef = ref(db, `rooms/${currentRoom}/owner`);
         const snapshot = await get(ownerRef);
         if (!snapshot.exists()) {
-            await set(ownerRef, userName); // 第一個進入的人成為房主
+            await set(ownerRef, userName); 
         }
 
         localStorage.setItem('rjpq_user', userName);
@@ -159,7 +157,15 @@
             const owner = serverData.owner || "";
             
             const memberList = document.getElementById("memberList");
-            memberList.innerHTML = Object.keys(users).map(u => {
+            
+            // 房主優先排序邏輯
+            const sortedUsers = Object.keys(users).sort((a, b) => {
+                if (a === owner) return -1;
+                if (b === owner) return 1;
+                return 0;
+            });
+
+            memberList.innerHTML = sortedUsers.map(u => {
                 const isOwner = (u === owner);
                 return `<span class="member-tag ${isOwner ? 'owner-tag' : ''}">${u}${isOwner ? ' 👑' : ''}</span>`;
             }).join('');
