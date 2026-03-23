@@ -18,6 +18,7 @@
 
         .member-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; border: 1px dashed #444; text-align: center; }
         .member-tag { display: inline-block; background: #333; padding: 2px 10px; border-radius: 12px; margin: 3px; color: #3ddc84; font-weight: bold; }
+        .owner-tag { border: 1px solid #ffc107 !important; color: #ffc107 !important; }
 
         .colors { display: flex; justify-content: space-between; margin: 20px 0; padding: 0 10px; }
         .color { width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; position: relative; }
@@ -41,8 +42,8 @@
 <body>
     <div class="container">
         <div id="loginView">
-            <div class="title">🍁 RJPQ 同步工具</div>
-	    <div class="input-group"><label>By.梨花帶雨製作</div>
+            <div class="title">🍁 RJPQ 同步工具 浪漫版</div>
+            <div class="input-group" style="text-align: center;"><label>By.梨花帶雨製作</label></div>
             <div class="input-group"><label>你的暱稱</label><input id="userInput" type="text" placeholder="輸入暱稱" maxlength="6"></div>
             <div class="input-group"><label>房間號碼</label><input id="roomInput" type="text" placeholder="例如：777"></div>
             <button id="joinBtn" class="login-btn">進入房間</button>
@@ -57,18 +58,18 @@
                 <div class="color blue" data-color="blue"></div>
                 <div class="color green" data-color="green"></div>
             </div>
-            <button class="clear-btn" id="resetBtn">清空全盤</button>
+            <button class="clear-btn" id="resetBtn">清空全盤 (僅限房主)</button>
             <div class="grid-container" id="grid"></div>
             <div class="share-box">
                 <span id="copyBtn" style="color:#007bff; cursor:pointer; text-decoration: underline;">📋 複製房間連結傳給隊友</span>
-                <div style="margin-top:5px; font-size: 20px;">By.梨花帶雨</div>
+                <div style="margin-top:10px; font-size: 20px;">By.梨花帶雨</div>
             </div>
         </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+    import { getDatabase, ref, set, onValue, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
     const config = { databaseURL: "https://pqlg-a2e9c-default-rtdb.asia-southeast1.firebasedatabase.app" };
     const app = initializeApp(config);
@@ -76,23 +77,32 @@
     let currentRoom = "", userName = "", selectedColor = "", serverData = {};
     
     // 彩蛋邏輯變數
-    let lastColor = "";
     let clickCount = 0;
     let lastAlertTime = 0;
 
     if(localStorage.getItem('rjpq_user')) document.getElementById("userInput").value = localStorage.getItem('rjpq_user');
 
-    const join = () => {
+    const join = async () => {
         userName = document.getElementById("userInput").value.trim();
         currentRoom = document.getElementById("roomInput").value.trim();
         if(!userName || !currentRoom) return alert("請填寫暱稱與房號");
+        
+        // 房主鎖定邏輯
+        const ownerRef = ref(db, `rooms/${currentRoom}/owner`);
+        const snapshot = await get(ownerRef);
+        if (!snapshot.exists()) {
+            await set(ownerRef, userName); // 第一個進入的人成為房主
+        }
+
         localStorage.setItem('rjpq_user', userName);
         document.getElementById("loginView").style.display = "none";
         document.getElementById("gameView").style.display = "block";
         document.getElementById("displayRoom").innerText = currentRoom;
+        
         const myPresenceRef = ref(db, `rooms/${currentRoom}/users/${userName}`);
         set(myPresenceRef, true);
         onDisconnect(myPresenceRef).remove();
+        
         const url = new URL(window.location);
         url.searchParams.set('r', currentRoom);
         window.history.pushState({}, '', url);
@@ -146,8 +156,14 @@
         onValue(ref(db, `rooms/${currentRoom}`), (snap) => {
             serverData = snap.val() || {};
             const users = serverData.users || {};
+            const owner = serverData.owner || "";
+            
             const memberList = document.getElementById("memberList");
-            memberList.innerHTML = Object.keys(users).map(u => `<span class="member-tag">${u}</span>`).join('');
+            memberList.innerHTML = Object.keys(users).map(u => {
+                const isOwner = (u === owner);
+                return `<span class="member-tag ${isOwner ? 'owner-tag' : ''}">${u}${isOwner ? ' 👑' : ''}</span>`;
+            }).join('');
+
             document.querySelectorAll('.cell').forEach(cell => {
                 const data = serverData.grid ? serverData.grid[cell.id] : null;
                 const nameSpan = document.getElementById(`name-${cell.id}`);
@@ -168,31 +184,33 @@
         });
     }
 
-    // 顏色選擇邏輯 + 彩蛋觸發
     document.querySelectorAll('.color').forEach(el => {
         el.onclick = () => {
             const thisColor = el.dataset.color;
             const now = Date.now();
-
             if (thisColor === selectedColor) {
                 clickCount++;
-                // 當連續點擊超過 3 次，且距離上次跳提醒超過 1 秒時觸發
                 if (clickCount >= 3 && (now - lastAlertTime > 1000)) {
-                    alert("好好好 我知道你很喜歡這顏色>\\\\\<");
+                    alert("好好好 我知道你很喜歡這顏色>\\\\\\<");
                     lastAlertTime = now;
-                    clickCount = 0; // 提醒完歸零
+                    clickCount = 0;
                 }
-            } else {
-                clickCount = 1; // 換顏色了，計數重新開始
-            }
-
+            } else { clickCount = 1; }
             selectedColor = thisColor;
             document.querySelectorAll('.color').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
         };
     });
 
-    document.getElementById("resetBtn").onclick = () => { if(confirm("確定要清空嗎？")) remove(ref(db, `rooms/${currentRoom}/grid`)); };
+    document.getElementById("resetBtn").onclick = () => { 
+        const owner = serverData.owner || "";
+        if (userName !== owner) {
+            alert(`只有房主 [${owner}] 才能清空全盤喔！`);
+            return;
+        }
+        if(confirm("確定要清空全盤嗎？")) remove(ref(db, `rooms/${currentRoom}/grid`)); 
+    };
+
     document.getElementById("copyBtn").onclick = () => { navigator.clipboard.writeText(window.location.href).then(() => alert("連結已複製！")); };
 </script>
 </body>
