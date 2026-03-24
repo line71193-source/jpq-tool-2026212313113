@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>RJPQ 同步工具 - 懸浮浪漫版</title>
+    <title>RJPQ 浪漫版</title>
     <style>
-        /* 基礎樣式保持不變 */
-        body { margin: 0; padding: 0; font-family: sans-serif; background: #0a0a0a; color: white; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; transition: background 0.3s; }
-        .container { width: 100%; max-width: 360px; padding: 10px; box-sizing: border-box; position: relative; }
-        .title { text-align: center; color: #ffc107; font-size: 1.4rem; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        body { margin: 0; padding: 0; font-family: sans-serif; background: #0a0a0a; color: white; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; }
+        .container { width: 100%; max-width: 360px; padding: 15px; box-sizing: border-box; }
+        .title { text-align: center; color: #ffc107; font-size: 1.4rem; margin-bottom: 15px; font-weight: bold; }
         
-        /* 懸浮按鈕樣式 */
-        .float-toggle { cursor: pointer; font-size: 1.2rem; filter: grayscale(1); transition: 0.2s; }
-        .float-toggle:hover { filter: grayscale(0); transform: scale(1.2); }
+        /* 置頂按鈕樣式 */
+        .pip-btn { width: 100%; padding: 10px; border: 2px solid #3ddc84; border-radius: 10px; background: transparent; color: #3ddc84; cursor: pointer; font-weight: bold; margin-bottom: 15px; transition: 0.3s; }
+        .pip-btn:hover { background: #3ddc84; color: #000; }
 
         .input-group { margin-bottom: 15px; }
         label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; padding-left: 5px; }
@@ -24,34 +23,26 @@
         .owner-tag { border: 1px solid #ffc107 !important; color: #ffc107 !important; }
 
         .colors { display: flex; justify-content: space-between; margin: 15px 0; padding: 0 5px; }
-        .color { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; position: relative; }
+        .color { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
         .color.active { border-color: white; transform: scale(1.1); }
         .red { background: #ff5b5b; } .yellow { background: #ffd633; } .blue { background: #3da5ff; } .green { background: #3ddc84; }
         
-        .clear-btn { background: #ff3b30; margin-bottom: 15px; font-size: 14px; padding: 8px; width: 100%; color:white; border-radius:8px; border:none; cursor:pointer; font-weight: bold;}
+        .clear-btn { background: #ff3b30; margin-bottom: 15px; font-size: 14px; padding: 10px; width: 100%; color:white; border-radius:8px; border:none; cursor:pointer; font-weight: bold;}
         
-        .grid-container { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-        .row { display: flex; align-items: center; gap: 6px; }
-        .floor-num { width: 20px; color: #ffc107; font-weight: bold; text-align: center; font-size: 13px; flex-shrink: 0; }
-        .cells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; flex-grow: 1; }
+        #captureArea { background: #0a0a0a; padding: 10px; border-radius: 10px; }
+        .grid-container { display: flex; flex-direction: column; gap: 5px; width: 100%; }
+        .row { display: flex; align-items: center; gap: 8px; }
+        .floor-num { width: 22px; color: #ffc107; font-weight: bold; text-align: center; font-size: 14px; }
+        .cells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; flex-grow: 1; }
+        .cell { height: 42px; background: #1a1a1a; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #333; position: relative; }
+        .cell .num { font-size: 15px; font-weight: bold; color: #555; }
+        .cell .name { font-size: 10px; margin-top: 2px; color: #555; font-weight: bold; }
         
-        .cell { height: 40px; background: #1a1a1a; border-radius: 5px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #333; user-select: none; position: relative; }
-        .cell .num { font-size: 14px; font-weight: bold; color: #444; }
-        .cell .name { font-size: 9px; margin-top: 1px; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 90%; text-align: center; font-weight: bold; }
-        
-        .share-box { margin-top: 20px; text-align: center; font-size: 11px; color: #666; }
-
-        /* --- 懸浮模式專用樣式 --- */
-        body.is-floating { background: rgba(0, 0, 0, 0.8) !important; justify-content: flex-start; }
-        body.is-floating .member-box, 
-        body.is-floating .colors, 
-        body.is-floating .clear-btn, 
-        body.is-floating .share-box,
-        body.is-floating .title span:not(.float-toggle) { display: none !important; }
-        body.is-floating .container { padding: 5px; }
-        body.is-floating .cell { height: 35px; opacity: 0.9; }
-        body.is-floating .title { margin-bottom: 5px; font-size: 1rem; }
+        /* 隱藏用來轉換影片的元素 */
+        #hiddenVideo { display: none; }
+        #canvasSource { display: none; }
     </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -64,11 +55,11 @@
         </div>
 
         <div id="gameView" style="display:none;">
-            <div class="title">
-                <span>🍁 房間 <span id="displayRoom"></span></span>
-                <span class="float-toggle" id="floatBtn" title="切換懸浮模式">📌</span>
-            </div>
-            <div class="member-box">👥 在線成員：<div id="memberList">載入中...</div></div>
+            <div class="title">🍁 房間 <span id="displayRoom"></span></div>
+            
+            <button class="pip-btn" id="startPip">📺 開啟永久置頂視窗</button>
+
+            <div class="member-box">👥 在線成員：<div id="memberList"></div></div>
             <div class="colors">
                 <div class="color red" data-color="red"></div>
                 <div class="color yellow" data-color="yellow"></div>
@@ -76,13 +67,17 @@
                 <div class="color green" data-color="green"></div>
             </div>
             <button class="clear-btn" id="resetBtn">清空全盤 (僅限房主)</button>
-            <div class="grid-container" id="grid"></div>
-            <div class="share-box">
-                <span id="copyBtn" style="color:#007bff; cursor:pointer; text-decoration: underline;">📋 複製房間連結傳給隊友</span>
-                <div style="margin-top:10px; font-size: 18px;">By.梨花帶雨</div>
+            
+            <div id="captureArea">
+                <div class="grid-container" id="grid"></div>
             </div>
+
+            <div style="text-align:center; margin-top:20px; font-size:18px; color:#888;">By.梨花帶雨</div>
         </div>
     </div>
+
+    <canvas id="canvasSource" width="360" height="500"></canvas>
+    <video id="hiddenVideo" autoplay muted playsinline></video>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -92,24 +87,45 @@
     const app = initializeApp(config);
     const db = getDatabase(app);
     let currentRoom = "", userName = "", selectedColor = "", serverData = {};
-    
-    // 懸浮切換
-    document.getElementById('floatBtn').onclick = () => {
-        document.body.classList.toggle('is-floating');
-        const isFloat = document.body.classList.contains('is-floating');
-        document.getElementById('floatBtn').innerText = isFloat ? "❌" : "📌";
+
+    // --- 子母畫面核心邏輯 ---
+    const startPipBtn = document.getElementById('startPip');
+    const captureArea = document.getElementById('captureArea');
+    const canvas = document.getElementById('canvasSource');
+    const video = document.getElementById('hiddenVideo');
+
+    async function updatePip() {
+        if (!document.pictureInPictureElement) return;
+        const canvasDraw = await html2canvas(captureArea, { backgroundColor: '#0a0a0a' });
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(canvasDraw, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(updatePip);
+    }
+
+    startPipBtn.onclick = async () => {
+        try {
+            const stream = canvas.captureStream(10); // 10 FPS 夠用了
+            video.srcObject = stream;
+            await video.play();
+            await video.requestPictureInPicture();
+            updatePip();
+        } catch (err) {
+            alert("瀏覽器不支援或需要點擊頁面後再試一次！");
+            console.error(err);
+        }
     };
 
+    // --- 原有邏輯 ---
     if(localStorage.getItem('rjpq_user')) document.getElementById("userInput").value = localStorage.getItem('rjpq_user');
 
     const join = async () => {
         userName = document.getElementById("userInput").value.trim();
         currentRoom = document.getElementById("roomInput").value.trim();
         if(!userName || !currentRoom) return alert("請填寫暱稱與房號");
-        
         const ownerRef = ref(db, `rooms/${currentRoom}/owner`);
         const snapshot = await get(ownerRef);
-        if (!snapshot.exists()) { await set(ownerRef, userName); }
+        if (!snapshot.exists()) await set(ownerRef, userName);
 
         localStorage.setItem('rjpq_user', userName);
         document.getElementById("loginView").style.display = "none";
@@ -119,20 +135,11 @@
         const myPresenceRef = ref(db, `rooms/${currentRoom}/users/${userName}`);
         set(myPresenceRef, true);
         onDisconnect(myPresenceRef).remove();
-        
-        const url = new URL(window.location);
-        url.searchParams.set('r', currentRoom);
-        window.history.pushState({}, '', url);
         initGrid();
         sync();
     };
 
     document.getElementById("joinBtn").onclick = join;
-    const params = new URLSearchParams(window.location.search);
-    if(params.get('r')) {
-        document.getElementById("roomInput").value = params.get('r');
-        document.getElementById("userInput").focus();
-    }
 
     function initGrid() {
         const grid = document.getElementById("grid");
@@ -150,13 +157,8 @@
                     if(!selectedColor) return;
                     const cellRef = ref(db, `rooms/${currentRoom}/grid/${id}`);
                     const cellData = serverData.grid ? serverData.grid[id] : null;
-                    if (cellData) { if (cellData.color === selectedColor) remove(cellRef); return; }
-                    let hasSameColor = false;
-                    for (let i = 1; i <= 4; i++) {
-                        const checkId = `f${f}c${i}`;
-                        if (serverData.grid && serverData.grid[checkId] && serverData.grid[checkId].color === selectedColor) { hasSameColor = true; break; }
-                    }
-                    if (!hasSameColor) set(cellRef, { color: selectedColor, user: userName });
+                    if (cellData && cellData.color === selectedColor) { remove(cellRef); return; }
+                    set(cellRef, { color: selectedColor, user: userName });
                 };
                 cells.appendChild(cell);
             }
@@ -173,17 +175,8 @@
             const users = serverData.users || {};
             const owner = serverData.owner || "";
             const memberList = document.getElementById("memberList");
-            
-            const sortedUsers = Object.keys(users).sort((a, b) => {
-                if (a === owner) return -1;
-                if (b === owner) return 1;
-                return 0;
-            });
-
-            memberList.innerHTML = sortedUsers.map(u => {
-                const isOwner = (u === owner);
-                return `<span class="member-tag ${isOwner ? 'owner-tag' : ''}">${u}${isOwner ? ' 👑' : ''}</span>`;
-            }).join('');
+            const sortedUsers = Object.keys(users).sort((a,b) => a===owner?-1:b===owner?1:0);
+            memberList.innerHTML = sortedUsers.map(u => `<span class="member-tag ${u===owner?'owner-tag':''}">${u}${u===owner?' 👑':''}</span>`).join('');
 
             document.querySelectorAll('.cell').forEach(cell => {
                 const data = serverData.grid ? serverData.grid[cell.id] : null;
@@ -191,14 +184,11 @@
                 const numSpan = document.getElementById(`num-${cell.id}`);
                 if (data) {
                     cell.style.background = bgColors[data.color];
-                    const textColor = textColors[data.color];
-                    numSpan.style.color = textColor;
-                    nameSpan.style.color = textColor;
+                    numSpan.style.color = nameSpan.style.color = textColors[data.color];
                     nameSpan.innerText = data.user;
                 } else {
                     cell.style.background = "#1a1a1a";
-                    numSpan.style.color = "#444";
-                    nameSpan.style.color = "#444";
+                    numSpan.style.color = nameSpan.style.color = "#555";
                     nameSpan.innerText = "";
                 }
             });
@@ -214,12 +204,9 @@
     });
 
     document.getElementById("resetBtn").onclick = () => { 
-        const owner = serverData.owner || "";
-        if (userName !== owner) { alert(`只有房主 [${owner}] 才能清空全盤喔！`); return; }
-        if(confirm("確定要清空全盤嗎？")) remove(ref(db, `rooms/${currentRoom}/grid`)); 
+        if (userName !== (serverData.owner || "")) return alert("房主限定！");
+        if(confirm("清空？")) remove(ref(db, `rooms/${currentRoom}/grid`)); 
     };
-
-    document.getElementById("copyBtn").onclick = () => { navigator.clipboard.writeText(window.location.href).then(() => alert("連結已複製！")); };
 </script>
 </body>
 </html>
