@@ -3,46 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>RJPQ 同步工具 - 浪漫版</title>
+    <title>RJPQ 同步工具 - 懸浮浪漫版</title>
     <style>
-        body { 
-            margin: 0; padding: 0; font-family: sans-serif; background: #0a0a0a; color: white; 
-            min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; 
-        }
-        .container { width: 100%; max-width: 360px; padding: 20px; box-sizing: border-box; }
-        .title { text-align: center; color: #ffc107; font-size: 1.4rem; margin-bottom: 20px; font-weight: bold; }
+        /* 基礎樣式保持不變 */
+        body { margin: 0; padding: 0; font-family: sans-serif; background: #0a0a0a; color: white; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; transition: background 0.3s; }
+        .container { width: 100%; max-width: 360px; padding: 10px; box-sizing: border-box; position: relative; }
+        .title { text-align: center; color: #ffc107; font-size: 1.4rem; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        
+        /* 懸浮按鈕樣式 */
+        .float-toggle { cursor: pointer; font-size: 1.2rem; filter: grayscale(1); transition: 0.2s; }
+        .float-toggle:hover { filter: grayscale(0); transform: scale(1.2); }
+
         .input-group { margin-bottom: 15px; }
         label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; padding-left: 5px; }
         input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: white; box-sizing: border-box; text-align: center; font-size: 16px; }
         .login-btn { width: 100%; padding: 15px; border: none; border-radius: 10px; background: #007bff; color: white; cursor: pointer; font-weight: bold; margin-top: 10px; }
 
-        .member-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; border: 1px dashed #444; text-align: center; }
-        .member-tag { display: inline-block; background: #333; padding: 2px 10px; border-radius: 12px; margin: 3px; color: #3ddc84; font-weight: bold; }
+        .member-box { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; border: 1px dashed #444; text-align: center; }
+        .member-tag { display: inline-block; background: #333; padding: 2px 8px; border-radius: 12px; margin: 2px; color: #3ddc84; font-weight: bold; }
         .owner-tag { border: 1px solid #ffc107 !important; color: #ffc107 !important; }
 
-        .colors { display: flex; justify-content: space-between; margin: 20px 0; padding: 0 10px; }
-        .color { width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; position: relative; }
-        .color.active { border-color: white; transform: scale(1.15); }
+        .colors { display: flex; justify-content: space-between; margin: 15px 0; padding: 0 5px; }
+        .color { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; position: relative; }
+        .color.active { border-color: white; transform: scale(1.1); }
         .red { background: #ff5b5b; } .yellow { background: #ffd633; } .blue { background: #3da5ff; } .green { background: #3ddc84; }
         
-        .clear-btn { background: #ff3b30; margin-bottom: 15px; font-size: 14px; padding: 10px; width: 100%; color:white; border-radius:8px; border:none; cursor:pointer; font-weight: bold;}
+        .clear-btn { background: #ff3b30; margin-bottom: 15px; font-size: 14px; padding: 8px; width: 100%; color:white; border-radius:8px; border:none; cursor:pointer; font-weight: bold;}
         
-        .grid-container { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-        .row { display: flex; align-items: center; gap: 8px; }
-        .floor-num { width: 22px; color: #ffc107; font-weight: bold; text-align: center; font-size: 15px; flex-shrink: 0; }
-        .cells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; flex-grow: 1; }
+        .grid-container { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .row { display: flex; align-items: center; gap: 6px; }
+        .floor-num { width: 20px; color: #ffc107; font-weight: bold; text-align: center; font-size: 13px; flex-shrink: 0; }
+        .cells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; flex-grow: 1; }
         
-        .cell { height: 45px; background: #1a1a1a; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #333; user-select: none; position: relative; }
-        .cell .num { font-size: 16px; font-weight: bold; color: #555; }
-        .cell .name { font-size: 10px; margin-top: 2px; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 90%; text-align: center; font-weight: bold; }
+        .cell { height: 40px; background: #1a1a1a; border-radius: 5px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #333; user-select: none; position: relative; }
+        .cell .num { font-size: 14px; font-weight: bold; color: #444; }
+        .cell .name { font-size: 9px; margin-top: 1px; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 90%; text-align: center; font-weight: bold; }
         
-        .share-box { margin-top: 25px; text-align: center; font-size: 12px; color: #888; }
+        .share-box { margin-top: 20px; text-align: center; font-size: 11px; color: #666; }
+
+        /* --- 懸浮模式專用樣式 --- */
+        body.is-floating { background: rgba(0, 0, 0, 0.8) !important; justify-content: flex-start; }
+        body.is-floating .member-box, 
+        body.is-floating .colors, 
+        body.is-floating .clear-btn, 
+        body.is-floating .share-box,
+        body.is-floating .title span:not(.float-toggle) { display: none !important; }
+        body.is-floating .container { padding: 5px; }
+        body.is-floating .cell { height: 35px; opacity: 0.9; }
+        body.is-floating .title { margin-bottom: 5px; font-size: 1rem; }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="loginView">
-            <div class="title">🍁 RJPQ 同步工具 浪漫版</div>
+            <div class="title">🍁 RJPQ 同步工具</div>
             <div class="input-group" style="text-align: center;"><label>By.梨花帶雨製作</label></div>
             <div class="input-group"><label>你的暱稱</label><input id="userInput" type="text" placeholder="輸入暱稱" maxlength="6"></div>
             <div class="input-group"><label>房間號碼</label><input id="roomInput" type="text" placeholder="例如：777"></div>
@@ -50,7 +64,10 @@
         </div>
 
         <div id="gameView" style="display:none;">
-            <div class="title">🍁 房間 <span id="displayRoom"></span></div>
+            <div class="title">
+                <span>🍁 房間 <span id="displayRoom"></span></span>
+                <span class="float-toggle" id="floatBtn" title="切換懸浮模式">📌</span>
+            </div>
             <div class="member-box">👥 在線成員：<div id="memberList">載入中...</div></div>
             <div class="colors">
                 <div class="color red" data-color="red"></div>
@@ -62,7 +79,7 @@
             <div class="grid-container" id="grid"></div>
             <div class="share-box">
                 <span id="copyBtn" style="color:#007bff; cursor:pointer; text-decoration: underline;">📋 複製房間連結傳給隊友</span>
-                <div style="margin-top:10px; font-size: 20px;">By.梨花帶雨</div>
+                <div style="margin-top:10px; font-size: 18px;">By.梨花帶雨</div>
             </div>
         </div>
     </div>
@@ -76,8 +93,12 @@
     const db = getDatabase(app);
     let currentRoom = "", userName = "", selectedColor = "", serverData = {};
     
-    let clickCount = 0;
-    let lastAlertTime = 0;
+    // 懸浮切換
+    document.getElementById('floatBtn').onclick = () => {
+        document.body.classList.toggle('is-floating');
+        const isFloat = document.body.classList.contains('is-floating');
+        document.getElementById('floatBtn').innerText = isFloat ? "❌" : "📌";
+    };
 
     if(localStorage.getItem('rjpq_user')) document.getElementById("userInput").value = localStorage.getItem('rjpq_user');
 
@@ -88,9 +109,7 @@
         
         const ownerRef = ref(db, `rooms/${currentRoom}/owner`);
         const snapshot = await get(ownerRef);
-        if (!snapshot.exists()) {
-            await set(ownerRef, userName); 
-        }
+        if (!snapshot.exists()) { await set(ownerRef, userName); }
 
         localStorage.setItem('rjpq_user', userName);
         document.getElementById("loginView").style.display = "none";
@@ -135,9 +154,7 @@
                     let hasSameColor = false;
                     for (let i = 1; i <= 4; i++) {
                         const checkId = `f${f}c${i}`;
-                        if (serverData.grid && serverData.grid[checkId] && serverData.grid[checkId].color === selectedColor) {
-                            hasSameColor = true; break;
-                        }
+                        if (serverData.grid && serverData.grid[checkId] && serverData.grid[checkId].color === selectedColor) { hasSameColor = true; break; }
                     }
                     if (!hasSameColor) set(cellRef, { color: selectedColor, user: userName });
                 };
@@ -155,10 +172,8 @@
             serverData = snap.val() || {};
             const users = serverData.users || {};
             const owner = serverData.owner || "";
-            
             const memberList = document.getElementById("memberList");
             
-            // 房主優先排序邏輯
             const sortedUsers = Object.keys(users).sort((a, b) => {
                 if (a === owner) return -1;
                 if (b === owner) return 1;
@@ -182,8 +197,8 @@
                     nameSpan.innerText = data.user;
                 } else {
                     cell.style.background = "#1a1a1a";
-                    numSpan.style.color = "#555";
-                    nameSpan.style.color = "#555";
+                    numSpan.style.color = "#444";
+                    nameSpan.style.color = "#444";
                     nameSpan.innerText = "";
                 }
             });
@@ -192,17 +207,7 @@
 
     document.querySelectorAll('.color').forEach(el => {
         el.onclick = () => {
-            const thisColor = el.dataset.color;
-            const now = Date.now();
-            if (thisColor === selectedColor) {
-                clickCount++;
-                if (clickCount >= 3 && (now - lastAlertTime > 1000)) {
-                    alert("好好好 我知道你很喜歡這顏色>\\\\\\<");
-                    lastAlertTime = now;
-                    clickCount = 0;
-                }
-            } else { clickCount = 1; }
-            selectedColor = thisColor;
+            selectedColor = el.dataset.color;
             document.querySelectorAll('.color').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
         };
@@ -210,10 +215,7 @@
 
     document.getElementById("resetBtn").onclick = () => { 
         const owner = serverData.owner || "";
-        if (userName !== owner) {
-            alert(`只有房主 [${owner}] 才能清空全盤喔！`);
-            return;
-        }
+        if (userName !== owner) { alert(`只有房主 [${owner}] 才能清空全盤喔！`); return; }
         if(confirm("確定要清空全盤嗎？")) remove(ref(db, `rooms/${currentRoom}/grid`)); 
     };
 
